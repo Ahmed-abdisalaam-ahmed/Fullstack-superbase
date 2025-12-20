@@ -2,17 +2,20 @@ import React, { useState } from "react";
 import { Link } from "react-router";
 import { FcCommandLine } from "react-icons/fc";
 import { FaUser } from "react-icons/fa";
+import { CiMenuBurger } from "react-icons/ci";
+import { IoMdClose } from "react-icons/io";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggedIn, setLoggedIn] = useState(true);
 
-  const avatar_url ="https://images.unsplash.com/photo-1765506265670-9e1c53f3a0e8?q=80&w=692&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  const avatar_url =
+    "https://images.unsplash.com/photo-1765506265670-9e1c53f3a0e8?q=80&w=692&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
   return (
     <header className="bg-white shadow">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* left and right */}
+        {/* left and right and hamburger*/}
         <div className="flex justify-between h-16">
           {/* left  */}
           <div className="flex">
@@ -54,8 +57,8 @@ const Header = () => {
               </Link>
             </nav>
           </div>
-          {/* Right */}
 
+          {/* Right */}
           <div className="flex items-center space-x-4">
             {/* Profile */}
             {isLoggedIn ? (
@@ -64,31 +67,39 @@ const Header = () => {
                   <span>hello, ShehabEldin</span>
                 </div>
                 <div className="relative">
-                  <button className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-200 focus:outline-0 focus:ring-2 focus:ring-offset-2 focus:ring-amber-500" 
+                  <button
+                    className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-200 focus:outline-0 focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
                     onMouseEnter={() => setIsDropdownOpen(true)}
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
-                    {
-                      avatar_url ? <img className="w-8 h-8 rounded-full " src={avatar_url}/> : <FaUser className="text-orange-600" />
-                    }
+                    {avatar_url ? (
+                      <img className="w-8 h-8 rounded-full " src={avatar_url} />
+                    ) : (
+                      <FaUser className="text-orange-600" />
+                    )}
                   </button>
 
-                 {/* Dropdown menu */}
-                {
-                  isDropdownOpen && (
-                  <div 
-                  className="absolute right-0 w-48 mt-1 rounded-md shadow-lg bg-white z-10"
-                  onMouseLeave={() => setIsDropdownOpen(false)}
-                  >
-                    <div className="absolute h-8 w-full"></div>
-                      <Link className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100 ">Your Profile</Link> 
-                      <Link className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100"> Manage Article</Link>
-                      <Link className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100">Signout</Link>
-                  </div>
-                 )}
+                  {/* Dropdown menu */}
+                  {isDropdownOpen && (
+                    <div
+                      className="absolute right-0 w-48 mt-1 rounded-md shadow-lg bg-white z-10"
+                      onMouseLeave={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="absolute h-8 w-full"></div>
+                      <Link className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100 ">
+                        Your Profile
+                      </Link>
+                      <Link className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100">
+                        {" "}
+                        Manage Article
+                      </Link>
+                      <Link className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100">
+                        Signout
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </>
-
             ) : (
               <div className="flex items-center space-x-4">
                 <Link
@@ -106,7 +117,42 @@ const Header = () => {
               </div>
             )}
           </div>
+
+          {/* Hamburger */}
+          <div className="sm:hidden -m-2 flex items-center">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400"
+            >
+              {isMenuOpen ? (
+                <IoMdClose className="block w-6 h-6" />
+              ) : (
+                <CiMenuBurger className="block w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* mobile  */}
+        {
+          isMenuOpen && (
+                    <div className="pt-2 pb-3 space-y-1">
+          <Link
+            to="/"
+            className="block pl-3 pr-4 py-2 border-l-4 border-orange-500 text-base font-medium text-orange-700 bg-orange-50"
+          >
+            Home
+          </Link>
+          <Link
+            to="/articles"
+            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+          >
+            Articles
+          </Link>
+        </div>
+          )
+        }
+
       </div>
     </header>
   );
