@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router'
 
+import {signUp} from '../lib/Auth'
+
 const SignUpPage = () => {
     
   const [email, setEmail] = useState('')
@@ -10,6 +12,34 @@ const SignUpPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
+
+  const handleSubmit = async(event) =>{
+    event.preventDefault();
+
+    setIsLoading(true);
+    setError(null);
+    
+
+    if(password !== confirmPassword){
+      setError("Password do not much!")
+      setIsLoading(false)
+      return
+    }
+
+
+    try {
+
+      await signUp(email,password,username)
+      setSuccess(true);
+
+    } catch (error) {
+      console.error(error)
+      setError(error.massage || "Failed to create account. Please try again");
+    } finally{
+      setIsLoading(false)
+    }
+
+  }
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8'>
@@ -23,7 +53,16 @@ const SignUpPage = () => {
 
         {/* form info */}
         <div className='bg-white rounded-lg shadow-md p-8'>
-          <form>
+
+          {
+            error && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                {error}
+              </div>
+            )
+          }
+
+          <form onSubmit={handleSubmit}>
             {/* email */}
            <div className="mb-6">
               <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="email">
@@ -51,7 +90,7 @@ const SignUpPage = () => {
               className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500'
               placeholder='Johndeo'
               value={username}
-              onChange={() => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
               required
               />
             </div>
