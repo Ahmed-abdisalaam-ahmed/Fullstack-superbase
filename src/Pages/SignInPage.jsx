@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { signIn } from "../lib/Auth";
 
 const SignInPage = () => {
   const [email, setEmail] = useState("");
@@ -7,6 +8,28 @@ const SignInPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+
+  const navigate = useNavigate()
+
+
+  const handlesubmit = async(event) =>{
+    event.preventDefault();
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+
+      await signIn(email, password)
+      navigate('/')
+
+    } catch (error) {
+      setError(error.message || "Failed to sign in . Please check your credentials.")
+      console.log("error", error)
+    } finally{
+      setIsLoading(false)
+    }
+  }
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -16,6 +39,7 @@ const SignInPage = () => {
           <h1 className="text-3xl font-bold">Welcome Back</h1>
           <p className="text-gray-600 mt-2">Sign in to access your account</p>
         </div>
+
         {/* form info */}
         <div className="bg-white rounded-lg shadow-md p-8">
           {error && (
@@ -24,7 +48,7 @@ const SignInPage = () => {
             </div>
           )}
 
-          <form>
+          <form onSubmit={handlesubmit}>
             <div className="mb-6">
               <label
                 className="block text-gray-700 text-sm font-semibold mb-2"
