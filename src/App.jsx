@@ -6,28 +6,31 @@ import SignUpPage from './Pages/SignUpPage'
 import Homepage from './Pages/Homepage'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import { AuthProvider } from './contexts/AuthContext'
 
 function App() {
 
   return (
-    <div>
-      {/* header */}
-      <Header />
-      <main>
-        {/* routes */}
-        <Routes>
-            <Route path='/' element={<Homepage />}/>
-            <Route path='/articles' element={<ArticlesPage />}/>
-            <Route path='/article/:id' element={<ArticlePage />}/>
+    <AuthProvider>
+      <div>
+        {/* header */}
+        <Header />
+        <main>
+          {/* routes */}
+          <Routes>
+              <Route path='/' element={<Homepage />}/>
+              <Route path='/articles' element={<ArticlesPage />}/>
+              <Route path='/article/:id' element={<ArticlePage />}/>
 
-            {/* unauthenticated routes (redirect to home if logging in ) */}
-            <Route path='/signin' element={<SignInPage />}/>
-            <Route path='/signup' element={<SignUpPage />}/>
-        </Routes> 
-      </main>
-      {/* footer */}
-      <Footer />
-    </div>
+              {/* unauthenticated routes (redirect to home if logging in ) */}
+              <Route path='/signin' element={<SignInPage />}/>
+              <Route path='/signup' element={<SignUpPage />}/>
+          </Routes> 
+        </main>
+        {/* footer */}
+        <Footer />
+      </div>
+    </AuthProvider>
   )
 }
 

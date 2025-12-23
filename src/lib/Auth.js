@@ -127,11 +127,11 @@ export async function getUserProfile(userId) {
   return sessionData
 }
 
-export async function onAuthchange(callback){
+export function onAuthchange(callback){
 
-    const {data}  = supabase.auth.onAuthStateChange((event,session) => {
-        callback(session?.user || null, event)
-    })
+  const {data}  = supabase.auth.onAuthStateChange((event,session) => {
+    callback(session?.user || null, event)
+  })
 
-    return () => data.subscription.unsubscribe();
+  return () => data.subscription.unsubscribe();
 }

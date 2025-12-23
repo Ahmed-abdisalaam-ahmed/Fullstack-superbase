@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { signIn } from "../lib/Auth";
+import { useAuth } from "../contexts/AuthContext";
 
 const SignInPage = () => {
   const [email, setEmail] = useState("");
@@ -9,8 +10,10 @@ const SignInPage = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  const navigate = useNavigate()
+  const authinfo = useAuth();
+  console.log("Auth context:", authinfo);
 
+  const navigate = useNavigate()
 
   const handlesubmit = async(event) =>{
     event.preventDefault();
