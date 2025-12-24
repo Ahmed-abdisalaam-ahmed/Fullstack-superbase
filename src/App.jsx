@@ -7,6 +7,11 @@ import Homepage from './Pages/Homepage'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import { AuthProvider } from './contexts/AuthContext'
+import UnAuthenticatedRoute from './components/UnAuthenticatedRoute'
+import ArticleEditorPage from './Pages/ArticleEditorPage'
+import ManageArticalePage from './Pages/ManageArticalePage'
+import ProfilePage from './Pages/ProfilePage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
 
@@ -23,8 +28,39 @@ function App() {
               <Route path='/article/:id' element={<ArticlePage />}/>
 
               {/* unauthenticated routes (redirect to home if logging in ) */}
-              <Route path='/signin' element={<SignInPage />}/>
-              <Route path='/signup' element={<SignUpPage />}/>
+              <Route path='/signin' element={
+                <UnAuthenticatedRoute>
+                  <SignInPage />
+                </UnAuthenticatedRoute>
+                }/>
+              <Route path='/signup' element={
+                <UnAuthenticatedRoute>
+                  <SignUpPage />
+                </UnAuthenticatedRoute>
+                }/>
+
+                {/* Protected router  */}
+                <Route path='/editor' element={
+                  <ProtectedRoute>
+                    <ArticleEditorPage/>
+                  </ProtectedRoute>
+                }/>
+                <Route path='/editor/:id' element={
+                  <ProtectedRoute>
+                    <ArticleEditorPage/>
+                  </ProtectedRoute>
+                }/>
+                <Route path='/manage-article' element={
+                  <ProtectedRoute>
+                    <ManageArticalePage/>
+                  </ProtectedRoute>
+                }/>
+                <Route path='/profile' element={
+                  <ProtectedRoute>
+                    <ProfilePage/>
+                  </ProtectedRoute>
+                }/>
+
           </Routes> 
         </main>
         {/* footer */}

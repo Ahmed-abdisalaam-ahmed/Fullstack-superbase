@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getUserProfile, onAuthchange } from "../lib/Auth.js";
+import { getUserProfile, onAuthchange, signOut } from "../lib/Auth.js";
 
 const AuthContext = createContext(null);
 
@@ -33,11 +33,23 @@ export function AuthProvider({children}){
 
     },[])
 
+    const logOut = async () =>{
+        try {
+            await signOut()
+        } catch (error) {
+            console.error('Error signing Out:', error)
+        }
+    }
+
     const value = {
         user,
         profile,
-        setIsLoading
+        isLoading,
+        isLoggedIn : !!user,  // convert user to boolean
+        logOut
     }
+
+    // cilmi cusub !! waxa lala jeedatta hadaadd rabto inaad 
 
     return(
         <AuthContext.Provider value={value}>

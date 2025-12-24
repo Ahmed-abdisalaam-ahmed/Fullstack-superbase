@@ -1,17 +1,30 @@
-# React + Vite
+Sidee u shaqeeyaa !! (Double Bang)?
+U maley operator-kan inuu yahay "Mashiinka Xaqiijinta":
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Kan kowaad (!): Wuxuu ka dhigaa waxa ka dambeeya "lidkooda" (opposite). Haddii ay wax jiraan, wuxuu ka dhigaa false.
 
-Currently, two official plugins are available:
+Kan labaad (!!): Wuxuu haddana dib ugu soo celiyay sidii saxda ahayd laakiin isagoo ah Boolean (True ama False) oo keliya.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Tusaale cad:
+Ka soo qaad in user uu yahay object (qof jira):
 
-## React Compiler
+user = { name: "Ahmed" } (Waa wax jira)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+!user = wuxuu noqonayaa false (maxaa yeelay wuxuu rogaa jiritaankii).
 
-## Expanding the ESLint configuration
+!!user = wuxuu noqonayaa true (wuxuu dib u rogaa false-kii).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-"# Fullstack-superbase" 
+Haddii user uu yahay null (qofna ma jiro):
+
+user = null
+
+!user = wuxuu noqonayaa true.
+
+!!user = wuxuu noqonayaa false.
+
+Maxaa looga door bidaa hababka kale?
+Programmers-ku waxay u isticmaalaan si ay koodka u soo gaabiyaan. Halkii aad qori lahayd: const isLoggedIn = user ? true : false;
+
+Waxaad si gaaban u qori kartaa: const isLoggedIn = !!user;
+
+Waa isku mid, laakiin tan dambe ayaa ka casrisan (cleaner code).

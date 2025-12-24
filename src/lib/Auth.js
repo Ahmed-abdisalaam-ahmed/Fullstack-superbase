@@ -48,7 +48,7 @@ export async function signIn(email, password) {
     password: password,
   });
 
-  console.log("user Info" , data)
+  console.log("user Info", data);
 
   if (error) throw error;
 
@@ -56,24 +56,19 @@ export async function signIn(email, password) {
 
   if (data?.user) {
     try {
+      const profile = await getUserProfile(data.user.id);
 
-      const profile = await getUserProfile(data.user.id)
-
-      console.log("profile info ",profile)
-
+      console.log("profile info ", profile);
     } catch (profileError) {
-      console.log("Error with profile during signIn:", profileError)
+      console.log("Error with profile during signIn:", profileError);
     }
-
-
   }
-
 }
 
 export async function getUserProfile(userId) {
   const { data: sessionData } = await supabase.auth.getSession();
 
-  const { data: userData, error } = await supabase
+  const { data, error } = await supabase
     .from("users")
 
     .select("*")
@@ -81,18 +76,19 @@ export async function getUserProfile(userId) {
     .single(); // waxay ka dhigaysaa one object becuase data waxay soo celinaysa a array
 
   if (error && error.code === "PGRST116") {
-
     console.log("No profile found, attempting to create one for user:", userId);
+
+    const { data : userData } = await supabase.auth.getUser();
+
+    console.log("true Data", userData);
+
     // get user email to drive username if needed
-
-    // email.spilt('@')[0] Using split("@")[0] is a classic and effective trick in JavaScript. As you continue building your project in 2025, just remember that if you ever need the domain (like gmail.com), you just switch that [0] to a [1].
-
     const email = userData?.user.email;
 
-    const defaultUsername = email ? email.spilt("@")[0] : `user_${Date.now()}`;
+    // eldinshehab87  @  gmail.com
+    const defaultUsername = email ? email.split("@")[0] : `user_${Date.now()}`;
 
     // create profile
-
     const { data: newProfileData, error: newProfileError } = await supabase
       .from("users")
       .insert({
@@ -113,25 +109,25 @@ export async function getUserProfile(userId) {
     return newProfileData;
   }
 
-
-
-  // geraenal error 
-  if(error){
-    console.error('Error fetching profile:' ,error)
-    throw error
+  // geraenal error
+  if (error) {
+    console.error("Error fetching profile:", error);
+    throw error;
   }
 
+  console.log("existing profile");
 
-  console.log("existing profile")
-
-  return sessionData
+  return data;
 }
 
-export function onAuthchange(callback){
-
-  const {data}  = supabase.auth.onAuthStateChange((event,session) => {
-    callback(session?.user || null, event)
-  })
+export function onAuthchange(callback) {
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    callback(session?.user || null, event);
+  });
 
   return () => data.subscription.unsubscribe();
+}
+
+export async function signOut(){
+  await supabase.auth.signOut()
 }

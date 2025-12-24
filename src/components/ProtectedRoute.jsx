@@ -1,7 +1,7 @@
 import { Navigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function UnAuthenticatedRoute({children, redirectTo = "/"}){
+export default function ProtectedRoute({children, redirectTo = "/signin"}){
 
     const {isLoading, isLoggedIn} = useAuth();
 
@@ -13,7 +13,7 @@ export default function UnAuthenticatedRoute({children, redirectTo = "/"}){
         )
     }
 
-    if(isLoggedIn){
+    if(!isLoggedIn){
         return <Navigate to={redirectTo} replace />
     }
 
