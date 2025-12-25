@@ -102,10 +102,14 @@ const Header = () => {
                       onMouseLeave={() => setIsDropdownOpen(false)}
                     >
                       {/* <div className="absolute h-8 w-full"></div> */}
-                      <Link className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ">
+                      <Link 
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ">
                         Your Profile
                       </Link>
-                      <Link className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100">
+                      <Link 
+                      to="/manage-article"
+                      className="block px-4 py-2 text-sm  text-gray-700 hover:bg-gray-100">
                         {" "}
                         Manage Article
                       </Link>
