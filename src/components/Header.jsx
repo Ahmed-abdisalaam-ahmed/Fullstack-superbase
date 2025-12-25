@@ -7,11 +7,10 @@ import { IoMdClose } from "react-icons/io";
 import { SiTrueup } from "react-icons/si";
 import { useAuth } from "../contexts/AuthContext";
 
-
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const {isLoggedIn, user, profile ,logOut} = useAuth();
+  const { isLoggedIn, user, profile, logOut } = useAuth();
 
   const avatar_url =
     "https://images.unsplash.com/photo-1765506265670-9e1c53f3a0e8?q=80&w=692&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
@@ -30,7 +29,7 @@ const Header = () => {
             </div>
 
             {/* nav */}
-            <nav className="hidden sm:ml-6 sm:flex sm:space-x-6">
+            <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link
                 to="/"
                 className="inline-flex items-center px-1 pt-1 border-b-2 border-orange-500 text-sm font-medium text-gray-900"
@@ -45,19 +44,30 @@ const Header = () => {
                 Articles
               </Link>
 
-              <Link
-                to="/write"
-                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-900"
-              >
-                write
-              </Link>
+              {isLoggedIn && (
+                <>
+                  <Link
+                    to="/editor"
+                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-900"
+                  >
+                    Write
+                  </Link>
 
-              <Link
-                to="/myarticle"
-                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-900"
-              >
-                My Article
-              </Link>
+                  <Link
+                    to="/articles"
+                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-900"
+                  >
+                    Articles
+                  </Link>
+
+                  <Link
+                    to="/manage-articles"
+                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-900"
+                  >
+                    My Articles
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
 
@@ -76,7 +86,10 @@ const Header = () => {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
                     {avatar_url ? (
-                      <img className="w-8 h-8 rounded-full " src={avatar_url} />
+                      <img
+                        className="w-8 h-8 rounded-full "
+                        src={profile?.avatar_url}
+                      />
                     ) : (
                       <FaUser className="text-orange-600" />
                     )}
@@ -96,7 +109,10 @@ const Header = () => {
                         {" "}
                         Manage Article
                       </Link>
-                      <button className="block px-4 py-2 text-left text-sm w-full cursor-pointer text-gray-700 hover:bg-orange-100 " onClick={logOut}>
+                      <button
+                        className="block px-4 py-2 text-left text-sm w-full cursor-pointer text-gray-700 hover:bg-orange-100 "
+                        onClick={logOut}
+                      >
                         Sign Out
                       </button>
                     </div>
@@ -201,7 +217,6 @@ const Header = () => {
                 </Link>
               </>
             )}
-
           </div>
         )}
       </div>

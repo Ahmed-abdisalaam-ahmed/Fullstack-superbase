@@ -70,7 +70,6 @@ export async function getUserProfile(userId) {
 
   const { data, error } = await supabase
     .from("users")
-
     .select("*")
     .eq("id", userId)
     .single(); // waxay ka dhigaysaa one object becuase data waxay soo celinaysa a array
