@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react'
+import React, { forwardRef, useEffect, useRef, useState} from 'react'
 import ReactQuill from 'react-quill-new';
 
 // use forwardRef to properly handle the ref
