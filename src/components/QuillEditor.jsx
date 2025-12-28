@@ -1,12 +1,16 @@
-import React, { forwardRef, useEffect, useRef, useState} from 'react'
+import React, { forwardRef, useEffect, useRef, useState } from 'react'
 import ReactQuill from 'react-quill-new';
+
+// import the package CSS directly so Vite can resolve it reliably
+import 'react-quill-new/dist/quill.snow.css'
+import './quill.snow.css'
 
 // use forwardRef to properly handle the ref
 
 const QuillEditor = forwardRef(({value, onChange, placeholder, className, height = 400}, ref) => {
 
    // create a separate ref for the reactQuill component
-    const quillRef = useRef();
+    const quillRef = useRef(null);
 
     const [editorValue, setEditorValue] = useState(value || '');
 
@@ -16,8 +20,12 @@ const QuillEditor = forwardRef(({value, onChange, placeholder, className, height
     },[value])
 
     // Create a memoized onChange handler
-    const handleChange = () =>{
-    }
+    const handleChange = useCallback((value) => { 
+
+        setEditorValue(value)
+        onChange(value)
+
+    },[onChange]);
 
     // setup module
     const modules = {
