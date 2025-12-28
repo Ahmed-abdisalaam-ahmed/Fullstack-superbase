@@ -51,11 +51,42 @@ const ArticleEditorPage = () => {
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
 
-  const handleImageSelect = () => {};
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+
+
+    if(file){
+      // check file type 
+      if(!file.type.startsWith('image/')){
+        toast.error("Please select a valid image file.");
+
+        e.target.value = "";
+        setSelectedImage(null)
+        return;
+      }
+
+      // check file size (limit to 2MB)
+
+      const maxSize = 5 * 1024 * 1024
+
+      if(file.size > maxSize){
+
+        toast.error(`Image size ( ${(file.size / 1024 /1024).toFixed(2)}MB) exceeds the 2MB limit`)
+        e.target.value = "";
+        setSelectedImage(null)
+        return;
+
+      }
+
+      setSelectedImage(file)
+
+      toast.success(`Select file : ${file.name}`)
+    }
+  };
 
   const handleContentChange = (value) => {
-    setContent(value)
-  }
+    setContent(value);
+  };
 
   const toggleTag = (tag) => {
     setSelectedTags((prev) =>
@@ -139,7 +170,7 @@ const ArticleEditorPage = () => {
             {selectedImage && (
               <button
                 type="button"
-                disabled={isUploading}
+                // disabled={isUploading}
                 className="px-3 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 disabled:opacity-50 cursor-pointer"
               >
                 {isUploading ? "Uploading..." : "Upload"}
@@ -241,13 +272,39 @@ const ArticleEditorPage = () => {
       </div>
 
       {/* React Quill */}
-      <QuillEditor
-          ref={editorRef}
-          value={content}
-          onChange={handleContentChange}
-          placeholder={"write your articale content here"}
-          height="500"
-      />
+
+      {/* Content editor */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Content
+        </label>
+        <div className="border border-gray-300 rounded-md overflow-hidden">
+          <QuillEditor
+            ref={editorRef}
+            value={content}
+            onChange={handleContentChange}
+            placeholder={"write your articale content here"}
+            height="500"
+          />
+        </div>
+      </div>
+
+       <div className="px-6 py-4 md:px-10 flex justify-end space-x-4">
+                <button
+                    onClick={() => handleSave(false)}
+
+                    className="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                    {isEditMode ? "Update as Draft" : "Save as Draft"}
+                </button>
+
+                <button
+                    onClick={() => handleSave(true)}
+                    className="px-6 py-3 border border-transparent rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                    {isEditMode ? "Update and Publish" : "Save and Publish"}
+                </button>
+        </div>
     </div>
   );
 };
