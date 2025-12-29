@@ -5,6 +5,8 @@ import { FiInfo, FiSave, FiTag, FiX } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 import QuillEditor from "../components/QuillEditor";
+import supabase from "../lib/superbase";
+import { uploadImage } from "../lib/storage";
 // import { uploadImage } from '../lib/storage'
 // import { createArticle, getArticleById, updateArticle } from '../lib/articles'
 
@@ -45,11 +47,12 @@ const ArticleEditorPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [imagePath, setImagePath] = useState("");
 
-  const { user } = useAuth;
-  const navigate = useNavigate();
-
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
+
+  const navigate = useNavigate()
+
+  const {user} = useAuth();
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
@@ -67,7 +70,7 @@ const ArticleEditorPage = () => {
 
       // check file size (limit to 2MB)
 
-      const maxSize = 5 * 1024 * 1024
+      const maxSize = 2 * 1024 * 1024
 
       if(file.size > maxSize){
 
@@ -93,6 +96,124 @@ const ArticleEditorPage = () => {
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
+
+  const handleUploadImage = async () => {
+
+    if(!selectedImage){
+      toast.error("Please select an image")
+      return
+    }
+
+    // check if the user is logged 
+    if(!user){
+        toast.error("You must sign in to Upload the image")
+        // console.log("You must sign in to Upload the image" ,error)
+        navigate('/signin')
+        return;
+    }
+
+    setIsUploading(true)
+
+    console.log("Starting image upload for:", selectedImage);
+
+    try {
+
+      // upload image to supabase storage
+      const { path , url} = await uploadImage(selectedImage, user.id) 
+
+      console.log("image uploaded successfully.", selectedImage)
+
+      setFeaturedImageUrl(url);
+      setImagePath(path);
+
+      // clear selected image and file input
+      setSelectedImage(null);
+      if(fileInputRef.current){
+        fileInputRef.current.value = ''
+      }
+
+      toast.success("Image uploaded successfully")
+      console.log("Image state after uploaded:", {
+        featuredImageUrl:url,
+        imagePath: path
+      })
+
+      // Return the uploaded image data
+      return {url, path}
+
+    } catch (error) {
+      console.error("Failed image Uploaded")
+
+    }finally{
+      setIsUploading(false)
+    }
+  }
+
+  const handleSave = async (publishStatus = null) => {
+
+
+            // Validate inputs
+        if (!title.trim()) {
+            toast.error('Please add a title to your article')
+            return
+        }
+
+
+        // Check for content
+        if (!content || content === '<p><br></p>') {
+            toast.error('Please add some content to your article')
+            return
+        }
+
+
+
+        // If user is not logged in, redirect to sign in
+        if (!user) {
+            toast.error('You must be signed in to save an article')
+            navigate('/signin')
+            return
+        }
+
+        let uploadedImageData = null;
+
+        // check if there a selected image that hasn't been uploaded yet
+
+
+        if(selectedImage){
+           console.log('Selected image needs to be uploaded first:', selectedImage)
+           const shouldUpload = confirm('You have a selected image that hasn\'t been uploaded yet. Would you like to upload it now?')
+
+
+           if(shouldUpload){
+
+            try {
+                uploadedImageData = await handleUploadImage();
+                console.log('Image uploaded during save:', uploadedImageData);
+
+                // Wait a Moment for state to update
+                await new Promise(resolve => setTimeout(resolve , 100)) 
+            } catch (error) {
+              console.error("Failed to upload image during save" , error)
+              toast.error("Failed uploded image. Please try uploading the image first.")
+              return
+            }
+
+            console
+           }else{
+            // If user doesn't want to upload the image, ask if they want to proceed without it
+                const shouldProceed = confirm('Do you want to proceed without uploading the image?')
+                if (!shouldProceed) {
+                    return
+                }
+                // Clear the selected image since user chose not to upload
+                setSelectedImage(null)
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = ''
+                }
+            }
+           }
+        }
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -170,7 +291,15 @@ const ArticleEditorPage = () => {
             {selectedImage && (
               <button
                 type="button"
-                // disabled={isUploading}
+                onClick={async () => {
+                  try {
+                    await handleUploadImage();
+                  } catch (error) {
+                    console.error('Failed to upload image:', error)
+                    toast.error('Failed to upload image. Please try again.')
+                  }
+                }}
+                disabled={isUploading}
                 className="px-3 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 disabled:opacity-50 cursor-pointer"
               >
                 {isUploading ? "Uploading..." : "Upload"}

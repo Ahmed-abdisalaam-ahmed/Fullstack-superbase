@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import ReactQuill from 'react-quill-new';
 
 // import the package CSS directly so Vite can resolve it reliably

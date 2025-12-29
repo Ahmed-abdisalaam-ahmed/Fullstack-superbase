@@ -33,7 +33,7 @@ const ProfilePage = () => {
 
           if(avatarError) throw avatarError;
 
-            // get the uploaded url
+          // get the uploaded url
           const {data: avatarData} = supabase.storage.from("avatars")
             .getPublicUrl(filePath)
 

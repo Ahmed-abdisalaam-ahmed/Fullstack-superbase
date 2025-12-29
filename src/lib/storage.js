@@ -4,13 +4,10 @@ import supabase from './superbase';
 
 export const uploadImage = async(file, userId , bucket = 'featured-image')=> {
 
-
-
-
     try {
 
         // file extension    shehab.jpeg   ['shehab' , ' jpeg']
-        const fileExt = file.name.split('.').pop().tolowercase();
+        const fileExt = file.name.split('.').pop().toLowerCase();
         
         //  create a unique file path xaxaxxxs-wawewee.wwt.png 
         
@@ -19,17 +16,16 @@ export const uploadImage = async(file, userId , bucket = 'featured-image')=> {
 
         // upload the file to supabase
 
-        const {data , error} = await supabase 
+        const {data , error} = await supabase.storage 
 
             .from(bucket)
             .upload(filePath,file, {
                 contentType: file.type,
                 cacheControl: '3600',
-                upsert: true
-
+                upsert: true,
             })
 
-            if(error) throw error 
+            if(error) throw error;
 
 
             // get the puplic URL for the uploaded file 
