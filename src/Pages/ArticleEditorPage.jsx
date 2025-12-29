@@ -212,7 +212,7 @@ const ArticleEditorPage = () => {
                 }
             }
            }
-        }
+        
   }
 
   return (
