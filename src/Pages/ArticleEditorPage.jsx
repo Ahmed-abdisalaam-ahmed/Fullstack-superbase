@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import QuillEditor from "../components/QuillEditor";
 import supabase from "../lib/superbase";
 import { uploadImage } from "../lib/storage";
+import { createArticle } from "../lib/articles";
 // import { uploadImage } from '../lib/storage'
 // import { createArticle, getArticleById, updateArticle } from '../lib/articles'
 
@@ -151,7 +152,6 @@ const ArticleEditorPage = () => {
 
   const handleSave = async (publishStatus = null) => {
 
-
             // Validate inputs
         if (!title.trim()) {
             toast.error('Please add a title to your article')
@@ -179,7 +179,7 @@ const ArticleEditorPage = () => {
         // check if there a selected image that hasn't been uploaded yet
 
 
-        if(selectedImage){
+      if(selectedImage){
            console.log('Selected image needs to be uploaded first:', selectedImage)
            const shouldUpload = confirm('You have a selected image that hasn\'t been uploaded yet. Would you like to upload it now?')
 
@@ -211,8 +211,74 @@ const ArticleEditorPage = () => {
                     fileInputRef.current.value = ''
                 }
             }
-           }
-        
+      }    
+      setIsSaving(true);
+      console.log('Starting article save with state:', {
+        isEditMode,
+        featuredImageUrl,
+        imagePath,
+        selectedImage,
+        uploadedImageData
+      })
+
+
+      try {
+
+
+        // Determine if we should update the  publish status
+        const published = publishStatus !== null ? publishStatus : isPublished
+
+        // Get currrent image state, preferring newly uploaded image if available
+        const currentImageUrl = uploadedImageData?.url || featuredImageUrl
+        const currentImagePath = uploadedImageData?.path || imagePath
+
+        // console.log("Current image state",)
+    
+
+        console.log('Current image state', {
+          featuredImageUrl: currentImageUrl,
+          imagePath: currentImagePath,
+          selectedImage,
+          uploadedImageData
+        })
+
+
+
+        const articleData = {
+
+          title,
+          content,
+          tags: selectedTags,
+          authorId: user.id,
+          published,
+          featuredImageUrl: currentImageUrl
+
+        } 
+
+        console.log("Saving article with data:", articleData);
+
+
+        let savedArticle;
+
+
+        // update 
+
+        if(isEditMode){
+          // update function 
+        }else{
+          // insert create new article 
+          savedArticle = await createArticle(articleData)
+          
+        }
+        console.log('Article saved successfully:',  savedArticle)
+        toast.success(`Article ${isEditMode ? 'updated' : 'created'} successfully`)
+
+      } catch (error) {
+        console.error("Error saving article", error)
+        toast.error("Failed to save your article. Please try againg later")
+      } finally{
+        setIsSaving(false)
+      }
   }
 
   return (
