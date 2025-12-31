@@ -51,7 +51,7 @@ function App() {
                     <ArticleEditorPage/>
                   </ProtectedRoute>
                 }/>
-                <Route path='/manage-article' element={
+                <Route path='/manage-articles' element={
                   <ProtectedRoute>
                     <ManageArticalePage/>
                   </ProtectedRoute>

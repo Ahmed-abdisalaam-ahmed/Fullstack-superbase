@@ -118,7 +118,7 @@ const ProfilePage = () => {
       <div className="max-w-3xl mx-auto">
         <div className='ame="bg-white shadow-xl rounded-lg overflow-hidden'>
           {/* profile Header */}
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-8">
+          <div className="bg-linear-to-r from-orange-500 to-orange-600 px-6 py-8">
             <div className="flex  flex-col items-center">
               <div className="relative group">
 
