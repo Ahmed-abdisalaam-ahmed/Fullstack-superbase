@@ -28,3 +28,20 @@ Programmers-ku waxay u isticmaalaan si ay koodka u soo gaabiyaan. Halkii aad qor
 Waxaad si gaaban u qori kartaa: const isLoggedIn = !!user;
 
 Waa isku mid, laakiin tan dambe ayaa ka casrisan (cleaner code).
+
+
+    /*
+
+
+    ### `year: 'numeric'`
+        This displays the year as a full number.
+        - Example: `2023` instead of `'23`
+
+        ### `month: 'long'`
+        This displays the full name of the month.
+        - Example: `September` instead of `Sep` or `9`
+
+        ### `day: 'numeric'`
+        This displays the day of the month as a number without leading zeros.
+        - Example: `5` instead of `05`
+    */
