@@ -225,7 +225,7 @@ const ArticleEditorPage = () => {
       try {
 
 
-        // Determine if we should update the  publish status
+        // Determine if we should update the publish status
         const published = publishStatus !== null ? publishStatus : isPublished
 
         // Get currrent image state, preferring newly uploaded image if available
@@ -499,7 +499,7 @@ const ArticleEditorPage = () => {
                 >
                     {isEditMode ? "Update and Publish" : "Save and Publish"}
                 </button>
-        </div>
+      </div>
     </div>
   );
 };

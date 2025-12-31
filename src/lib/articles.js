@@ -29,16 +29,16 @@ export const createArticle = async(article) => {
 
     return data
 }
-// all articles 100 weeye T.S = tusaale
+
+
+export const getArticleByAuthor = async(authorId, {includeUnPublished = false, limit = 10, offset = 0}) => {
+    // all articles 100 weeye T.S = tusaale
 
 // offset 0 : meesha oo ka bilabanayo -> 10 -> 20 -> 30 up sidaa ayuu usocn.
 
 // limit 10 : waa xadiga aad rabtid inoo page-ka soo muuqdo.
 
 // acsending = waa sidee ay ukala danbeeyen usoo kala hormari
-
-export const getArticleByAuthor = async(authorId, {includeUnPublished = false, limit = 10, offset = 0}) => {
-
     let query = supabase 
         .from('articles')
         .select(`
@@ -61,3 +61,35 @@ export const getArticleByAuthor = async(authorId, {includeUnPublished = false, l
         count
     }
 }
+
+export const deleteArticle = async (id) => {
+    console.log(`Atttemping to delete article with ID: ${id}`)
+
+
+
+    // first delete all asscited comments 
+    const {error: commentsError} = await supabase.from('comments').delete().eq('article_id',id)
+
+
+    if (commentsError) {
+        console.error('Error deleting comments:', commentsError)
+        console.error('Comments error details:', JSON.stringify(commentsError, null, 2))
+    } else {
+        console.log('Successfully deleted associated comments')
+    }
+
+    // Finnaly delete the article 
+
+    const {data, error} = await supabase.from('article').delete().eq('id',id)
+
+    if(error) {
+        console.error('Error deleting article:', error)
+        console.error('Article error details:', JSON.stringify(error, null, 2))
+        throw error
+
+    } else {
+        console.log(`Successfully deleted article with ID: ${id}`)
+    }
+
+    return data
+}   
