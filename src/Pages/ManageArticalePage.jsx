@@ -64,9 +64,9 @@ const ManageArticalePage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-12">
+    <div className="min-h-screen bg-linear-to-b from-orange-50 to-white pb-12">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-white">
+      <div className="bg-linear-to-r from-orange-600 via-orange-500 to-amber-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
@@ -131,6 +131,8 @@ const ManageArticalePage = () => {
                   </span>
                 )}
               </h2>
+
+              
 
 
               
