@@ -80,7 +80,7 @@ export const deleteArticle = async (id) => {
 
     // Finnaly delete the article 
 
-    const {data, error} = await supabase.from('article').delete().eq('id',id)
+    const {data, error} = await supabase.from('articles').delete().eq('id',id)
 
     if(error) {
         console.error('Error deleting article:', error)

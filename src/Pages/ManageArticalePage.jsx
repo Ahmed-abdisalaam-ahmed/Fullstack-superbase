@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, replace, useNavigate } from "react-router";
-import { getArticleByAuthor } from "../lib/articles";
+import { deleteArticle, getArticleByAuthor } from "../lib/articles";
 import toast from "react-hot-toast";
 import {
   FiPlus,
@@ -64,12 +64,12 @@ const ManageArticalePage = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       fetchUserArticles();
     } else {
       navigate("/signin");
     }
-  }, [user]);
+  }, [user?.id]);
 
   const fetchUserArticles = async () => {
     try {
@@ -91,24 +91,43 @@ const ManageArticalePage = () => {
     }
   };
 
-
-
   // confirm delete
-  const confrimDelete = (article) => {
+  const confirmDelete = (article) => {
     setArticleToDelete(article);
   };
 
-  // Handle to Delete 
+  // Handle to Delete
 
-  const HandleDelete = () => {
-    if(!articleToDelete) return
+  const HandleDelete = async () => {
+    if (!articleToDelete) return;
 
     try {
-      
+      setIsDeleting(true);
+      console.log("Starting deletion process ");
+
+      // wrap the optimistic update in a transition
+      startTransition(() => updateOptimisticArticles(articleToDelete.id));
+
+      const result = await deleteArticle(articleToDelete.id);
+
+      setArticles((prevArticles) =>
+        prevArticles.filter((article) => article.id !== articleToDelete.id)
+      );
+      setTotalCount((prevCount) => prevCount - 1);
+
+      setArticleToDelete(null);
     } catch (error) {
-      
+      console.error("Error fetching articles:", error);
+      setError("Failed to load your articles. Please try again.");
+      toast.error("Failed to load your articles");
+
+      // fetch articles again to restore state in case optimistic update was applied
+      fetchUserArticles();
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
   const publishedArticles = optimisticArticles.filter(
     (article) => article.published
   );
@@ -177,7 +196,7 @@ const ManageArticalePage = () => {
           <div className="space-y-8">
             {/* Pubblished articles section  */}
             <div>
-              <h2 classNam="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                 <span>Published Articles</span>e
                 {publishedArticles.length > 0 && (
                   <span className="ml-3 px-2.5 py-0.5 bg-green-100 text-green-800 text-sm font-medium rounded-full">
@@ -239,8 +258,8 @@ const ManageArticalePage = () => {
                               </div>
                             </td>
 
-                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                              <div className="flex justify-end space-x-2">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex space-x-2">
                                 <Link
                                   to={`/article/${article.id}`}
                                   className="p-2 text-indigo-600 hover:text-orange-800 rounded-full hover:bg-blue-50"
@@ -257,7 +276,7 @@ const ManageArticalePage = () => {
                                 </Link>
 
                                 <button
-                                  onClick={() => confrimDelete(article)}
+                                  onClick={() => confirmDelete(article)}
                                   className="p-2 text-red-600 hover:text-red-800 rounded-full cursor-pointer hover:bg-blue-50"
                                   title="Delete Article"
                                 >
@@ -289,33 +308,34 @@ const ManageArticalePage = () => {
               Are you sure you want to delete "
               {articleToDelete.title || "Untitled Article"}"? This action cannot
               be undone.
-              <div className="flex justify-center space-x-3 mt-2">
-                <button
-                  // onClick={cancelDelete}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 cursor-pointer rounded-lg hover:bg-gray-200 transition-colors duration-200"
-                >
-                  cancel
-                </button>
-
-                <button
-                  // onClick={HandleDelete}
-                  // disabled={isDeleting}
-                  className="px-4 py-2 bg-red-600 cursor-pointer text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center"
-                >
-                  {isDeleting ? (
-                    <>
-                      <FiLoader className="animate-spin mr-2" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <FiTrash2 className="mr-2" />
-                      Delete
-                    </>
-                  )}
-                </button>
-              </div>
             </p>
+            <div className="flex justify-center space-x-3 mt-2">
+              <button
+                // onClick={cancelDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={HandleDelete}
+                // disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center"
+              >
+                {isDeleting ? (
+                  <>
+                    <FiLoader className="animate-spin mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <FiTrash2 className="mr-2" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
