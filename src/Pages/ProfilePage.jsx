@@ -8,10 +8,10 @@ import { data } from "react-router";
 
 const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
-  const [username, setUsername] = useState(null);
+  const { user, profile } = useAuth();
+  const [username, setUsername] = useState(profile?.username ?? null);
   const [avatar, setAvatar] = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const { user  } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
 
   const handleSubmit = async (e) => {
       e.preventDefault();
@@ -92,11 +92,14 @@ const ProfilePage = () => {
     }
   }
 
-  useEffect(() =>{
-    if(user){
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username)
+      setAvatarUrl(profile.avatar_url)
+    } else if (user) {
       fetchUserProfile()
     }
-  },[user])
+  }, [profile, user])
 
   const fetchUserProfile = async () => {
     try {
