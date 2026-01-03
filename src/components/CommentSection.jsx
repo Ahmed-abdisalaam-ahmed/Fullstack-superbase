@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext';
 import supabase from '../lib/superbase';
 import { FiMessageSquare, FiSend } from 'react-icons/fi';
-import { Link } from 'react-router';
+import { data, Link } from 'react-router';
 
 const CommentSection = ({articleId}) => {
     const { user, profile } = useAuth();
@@ -14,8 +14,50 @@ const CommentSection = ({articleId}) => {
     const [editText, setEditText] = useState('');
     const commentInputRef = useRef(null);
 
-    const handleSubmit = () => {
-      
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+
+      const content = newComment.trim();
+
+      if(content || !user) {
+        try {
+
+
+          // simple optimistic update = add temp comment at the top
+
+          const optinicticComment = {
+            id: `temp=${Date.now()}`,
+            content,
+            created_at: new Date().toISOString(),
+            user_id: user.id,
+            user: {
+              id: user.id,
+              username: user.username,
+              avatar_url: profile.avatar_url
+            },
+            isOptimistic: true
+          }
+
+          setComments((prev => [optinicticComment, ...prev]))
+
+          // TODO: save to the database
+
+         const {data ,error} = await supabase.from('comments')
+                .insert({content, article_id: articleId, user_id: user.id})
+                // .select('content, article_id ,user_id')
+                // .single();
+
+
+          if(error) throw error
+          if(data){
+            console.log("comment data info " , data);
+          }
+          
+
+        } catch (error) {
+          
+        }
+      }
     }
 
     // console.log("user info", user)
@@ -55,7 +97,7 @@ const CommentSection = ({articleId}) => {
             )}
         </div>
         {user ? (
-            <form on onSubmit={handleSubmit} className="mb-6">
+            <form onSubmit={handleSubmit} className="mb-6">
                     <div className="flex gap-3">
                         <img
                             src={profile?.avatar_url || 'User'}
@@ -111,6 +153,10 @@ const CommentSection = ({articleId}) => {
                 </div>
           )
         }
+
+        {/* comments List */}
+
+        
     </div>
   )
 }
