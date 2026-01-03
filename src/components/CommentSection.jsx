@@ -16,46 +16,6 @@ const CommentSection = ({ articleId }) => {
   const [editText, setEditText] = useState("");
   const commentInputRef = useRef(null);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const content = newComment.trim();
-
-    if (content || !user) {
-      try {
-        // simple optimistic update = add temp comment at the top
-
-        const optinicticComment = {
-          id: `temp=${Date.now()}`,
-          content,
-          created_at: new Date().toISOString(),
-          user_id: user.id,
-          user: {
-            id: user.id,
-            username: user.username,
-            avatar_url: profile.avatar_url,
-          },
-          isOptimistic: true,
-        };
-
-        setComments((prev) => [optinicticComment, ...prev]);
-
-        // TODO: save to the database
-
-        const { data, error } = await supabase
-          .from("comments")
-          .insert({ content, article_id: articleId, user_id: user.id });
-        // .select('content, article_id ,user_id')
-        // .single();
-
-        if (error) throw error;
-        if (data) {
-          console.log("comment data info ", data);
-        }
-      } catch (error) {}
-    }
-  };
-
   // console.log("user info", user)
   const fetchComments = async () => {
     try {
@@ -168,11 +128,18 @@ const CommentSection = ({ articleId }) => {
                   "UNFILTERED: Removing deleted comment with ID:",
                   payload.old.id
                 );
-                const filteredComments = current.filter((comment) => comment.id !== payload.old.id);
-                console.log( `UNFILTERED: Comments before: ${current.length}, after: ${filteredComments.length}`);
+                const filteredComments = current.filter(
+                  (comment) => comment.id !== payload.old.id
+                );
+                console.log(
+                  `UNFILTERED: Comments before: ${current.length}, after: ${filteredComments.length}`
+                );
                 return filteredComments;
               } else {
-                console.log("UNFILTERED: Comment ID not found in current state:",payload.old.id);
+                console.log(
+                  "UNFILTERED: Comment ID not found in current state:",
+                  payload.old.id
+                );
                 return current;
               }
             });
@@ -189,6 +156,46 @@ const CommentSection = ({ articleId }) => {
       supabase.removeChannel(commentChannel);
     };
   }, [articleId]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const content = newComment.trim();
+
+    if (content || !user) {
+      try {
+        // simple optimistic update = add temp comment at the top
+
+        const optinicticComment = {
+          id: `temp=${Date.now()}`,
+          content,
+          created_at: new Date().toISOString(),
+          user_id: user.id,
+          user: {
+            id: user.id,
+            username: user.username,
+            avatar_url: profile.avatar_url,
+          },
+          isOptimistic: true,
+        };
+
+        setComments((prev) => [optinicticComment, ...prev]);
+
+        // TODO: save to the database
+
+        const { data, error } = await supabase
+          .from("comments")
+          .insert({ content, article_id: articleId, user_id: user.id });
+        // .select('content, article_id ,user_id')
+        // .single();
+
+        if (error) throw error;
+        if (data) {
+          console.log("comment data info ", data);
+        }
+      } catch (error) {}
+    }
+  };
 
   const handleDelete = async (commentId) => {
     if (!window.confirm("Are you sure you want to Delete this comments"))
@@ -208,13 +215,40 @@ const CommentSection = ({ articleId }) => {
         .eq("id", commentId)
         .select();
 
-      console.log("Comment deleted successfully from database:", {count,data,});
+      console.log("Comment deleted successfully from database:", {
+        count,
+        data,
+      });
       console.log("========= COMMENT DELETION COMPLETE =========");
       toast.success("========= COMMENT DELETION COMPLETE =========");
     } catch (error) {
       console.error("Error deleting comment:", error);
       toast.error("Failed to delete comment");
       fetchComments();
+    }
+  };
+
+  const handleEdit = async (comment) => {
+    setEditingId(comment.id);
+    setEditText(comment.content);
+  };
+
+  const handleUpdate = async () => {
+    if (!((editText || "").trim())) return;
+
+    try {
+      const commentId = editingId;
+      const content = (editText || "").trim();
+      // clear edit text and exit editing mode
+      setEditText("");
+      setEditingId(null);
+
+      await supabase.from("comments").update({ content }).eq("id", commentId);
+
+      // let real time handle the update
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      toast.error('Failed to update comment');
     }
   };
 
@@ -310,7 +344,7 @@ const CommentSection = ({ articleId }) => {
               </p>
             </div>
           ) : (
-            comments.map((comment) => (
+            comments.map(comment => (
               <div
                 key={comment.id}
                 className={`border border-gray-200 p-4 rounded-lg ${
@@ -352,7 +386,7 @@ const CommentSection = ({ articleId }) => {
                         !comment.isOptimistic && (
                           <div className="flex space-x-2">
                             <button
-                              // onClick={() => handleEdit(comment)}
+                              onClick={() => handleEdit(comment)}
                               className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
                               aria-label="Edit comment"
                             >
@@ -374,10 +408,34 @@ const CommentSection = ({ articleId }) => {
 
                     {/* comments content  */}
 
-                    {/* TODO: Area to Edit */}
-                    <p className="text-gray-700 whitespace-pre-line text-sm mt-1">
-                      {comment.content}
-                    </p>
+                    {editingId === comment.id ? (
+                      <div className="mt-2 bg-white p-3 rounded border border-gray-200">
+                        <textarea
+                          className="w-full p-2 border border-gray-200 rounded bg-white text-gray-700 mb-2"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            // onClick={cancelEdit}
+                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleUpdate}
+                            className="px-3 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600 disabled:opacity-50"
+                            disabled={!((editText || "").trim())}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-700 whitespace-pre-line text-sm mt-1">
+                        {comment.content}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
