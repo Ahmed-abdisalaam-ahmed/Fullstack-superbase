@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { getUserProfile, onAuthchange, signOut } from "../lib/Auth.js";
 
 const AuthContext = createContext(null);
@@ -8,6 +8,7 @@ export function AuthProvider({children}){
     const [user, setUser] = useState(null)
     const [profile, setProfile] = useState(null)
     const [isLoading,setIsLoading] = useState(true)
+    const prevUserId = useRef(null)
 
     useEffect(() => {
 
@@ -15,16 +16,23 @@ export function AuthProvider({children}){
         setUser(user);
 
         if(user){
+            // Skip fetching profile if the same user is already loaded
+            if (prevUserId.current === user.id) {
+                setIsLoading(false);
+                return;
+            }
 
             try {
                 const userProfile = await getUserProfile(user.id);
                 setProfile(userProfile);
+                prevUserId.current = user.id;
 
             } catch (error) {
                 console.error("Error fetching user profile: ", error);
             }
         } else {
             setProfile(null)
+            prevUserId.current = null
         }
         setIsLoading(false);
     })

@@ -7,7 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import QuillEditor from "../components/QuillEditor";
 import supabase from "../lib/superbase";
 import { uploadImage } from "../lib/storage";
-import { createArticle } from "../lib/articles";
+import { createArticle, getArticleById, updateArticle } from "../lib/articles";
 // import { uploadImage } from '../lib/storage'
 // import { createArticle, getArticleById, updateArticle } from '../lib/articles'
 
@@ -31,7 +31,11 @@ const AVAILABLE_TAGS = [
 ];
 
 const ArticleEditorPage = () => {
-  const isEditMode = false;
+  const { id } = useParams();
+
+  console.log("the Id of url", id);
+
+  const isEditMode = Boolean(id);
 
   // State for article data
   const [title, setTitle] = useState("");
@@ -51,40 +55,80 @@ const ArticleEditorPage = () => {
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const {user} = useAuth();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchArticle = async () => {
+        try {
+          const article = await getArticleById(id);
+
+          if (!article) {
+            setError("Article not found");
+            return;
+          }
+
+          if (article.author_id !== user?.id) {
+            setError("You do not have permission to edit this article");
+            return;
+          }
+          setTitle(article.title);
+          setContent(article.content);
+          setSelectedTags(article.tags);
+          if (article.featured_image) {
+            console.log(
+              "Loading existing featured image:",
+              article.featured_image
+            );
+
+            // Simply set the URL directly without the fetch check
+            setFeaturedImageUrl(article.featured_image);
+          } else {
+            setFeaturedImageUrl("");
+          }
+          setIsPublished(article.published || false);
+        } catch (error) {
+            console.error('Error fetching article:', err)
+            setError('Failed to load article')
+        }
+      };
+      fetchArticle();
+    }
+  }, [id, isEditMode, user.id]);
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
 
-
-    if(file){
-      // check file type 
-      if(!file.type.startsWith('image/')){
+    if (file) {
+      // check file type
+      if (!file.type.startsWith("image/")) {
         toast.error("Please select a valid image file.");
 
         e.target.value = "";
-        setSelectedImage(null)
+        setSelectedImage(null);
         return;
       }
 
       // check file size (limit to 2MB)
 
-      const maxSize = 2 * 1024 * 1024
+      const maxSize = 2 * 1024 * 1024;
 
-      if(file.size > maxSize){
-
-        toast.error(`Image size ( ${(file.size / 1024 /1024).toFixed(2)}MB) exceeds the 2MB limit`)
+      if (file.size > maxSize) {
+        toast.error(
+          `Image size ( ${(file.size / 1024 / 1024).toFixed(
+            2
+          )}MB) exceeds the 2MB limit`
+        );
         e.target.value = "";
-        setSelectedImage(null)
+        setSelectedImage(null);
         return;
-
       }
 
-      setSelectedImage(file)
+      setSelectedImage(file);
 
-      toast.success(`Select file : ${file.name}`)
+      toast.success(`Select file : ${file.name}`);
     }
   };
 
@@ -99,187 +143,173 @@ const ArticleEditorPage = () => {
   };
 
   const handleUploadImage = async () => {
-
-    if(!selectedImage){
-      toast.error("Please select an image")
-      return
+    if (!selectedImage) {
+      toast.error("Please select an image");
+      return;
     }
 
-    // check if the user is logged 
-    if(!user){
-        toast.error("You must sign in to Upload the image")
-        // console.log("You must sign in to Upload the image" ,error)
-        navigate('/signin')
-        return;
+    // check if the user is logged
+    if (!user) {
+      toast.error("You must sign in to Upload the image");
+      // console.log("You must sign in to Upload the image" ,error)
+      navigate("/signin");
+      return;
     }
 
-    setIsUploading(true)
+    setIsUploading(true);
 
     console.log("Starting image upload for:", selectedImage);
 
     try {
-
       // upload image to supabase storage
-      const { path , url} = await uploadImage(selectedImage, user.id) 
+      const { path, url } = await uploadImage(selectedImage, user.id);
 
-      console.log("image uploaded successfully.", selectedImage)
+      console.log("image uploaded successfully.", selectedImage);
 
       setFeaturedImageUrl(url);
       setImagePath(path);
 
       // clear selected image and file input
       setSelectedImage(null);
-      if(fileInputRef.current){
-        fileInputRef.current.value = ''
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
 
-      toast.success("Image uploaded successfully")
+      toast.success("Image uploaded successfully");
       console.log("Image state after uploaded:", {
-        featuredImageUrl:url,
-        imagePath: path
-      })
+        featuredImageUrl: url,
+        imagePath: path,
+      });
 
       // Return the uploaded image data
-      return {url, path}
-
+      return { url, path };
     } catch (error) {
-      console.error("Failed image Uploaded")
-
-    }finally{
-      setIsUploading(false)
+      console.error("Failed image Uploaded");
+    } finally {
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleSave = async (publishStatus = null) => {
+    // Validate inputs
+    if (!title.trim()) {
+      toast.error("Please add a title to your article");
+      return;
+    }
 
-            // Validate inputs
-        if (!title.trim()) {
-            toast.error('Please add a title to your article')
-            return
+    // Check for content
+    if (!content || content === "<p><br></p>") {
+      toast.error("Please add some content to your article");
+      return;
+    }
+
+    // If user is not logged in, redirect to sign in
+    if (!user) {
+      toast.error("You must be signed in to save an article");
+      navigate("/signin");
+      return;
+    }
+
+    let uploadedImageData = null;
+
+    // check if there a selected image that hasn't been uploaded yet
+
+    if (selectedImage) {
+      console.log("Selected image needs to be uploaded first:", selectedImage);
+      const shouldUpload = confirm(
+        "You have a selected image that hasn't been uploaded yet. Would you like to upload it now?"
+      );
+
+      if (shouldUpload) {
+        try {
+          uploadedImageData = await handleUploadImage();
+          console.log("Image uploaded during save:", uploadedImageData);
+
+          // Wait a Moment for state to update
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        } catch (error) {
+          console.error("Failed to upload image during save", error);
+          toast.error(
+            "Failed uploded image. Please try uploading the image first."
+          );
+          return;
         }
 
-
-        // Check for content
-        if (!content || content === '<p><br></p>') {
-            toast.error('Please add some content to your article')
-            return
+        console;
+      } else {
+        // If user doesn't want to upload the image, ask if they want to proceed without it
+        const shouldProceed = confirm(
+          "Do you want to proceed without uploading the image?"
+        );
+        if (!shouldProceed) {
+          return;
         }
-
-
-
-        // If user is not logged in, redirect to sign in
-        if (!user) {
-            toast.error('You must be signed in to save an article')
-            navigate('/signin')
-            return
+        // Clear the selected image since user chose not to upload
+        setSelectedImage(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
         }
-
-        let uploadedImageData = null;
-
-        // check if there a selected image that hasn't been uploaded yet
-
-
-      if(selectedImage){
-           console.log('Selected image needs to be uploaded first:', selectedImage)
-           const shouldUpload = confirm('You have a selected image that hasn\'t been uploaded yet. Would you like to upload it now?')
-
-
-           if(shouldUpload){
-
-            try {
-                uploadedImageData = await handleUploadImage();
-                console.log('Image uploaded during save:', uploadedImageData);
-
-                // Wait a Moment for state to update
-                await new Promise(resolve => setTimeout(resolve , 100)) 
-            } catch (error) {
-              console.error("Failed to upload image during save" , error)
-              toast.error("Failed uploded image. Please try uploading the image first.")
-              return
-            }
-
-            console
-           }else{
-            // If user doesn't want to upload the image, ask if they want to proceed without it
-                const shouldProceed = confirm('Do you want to proceed without uploading the image?')
-                if (!shouldProceed) {
-                    return
-                }
-                // Clear the selected image since user chose not to upload
-                setSelectedImage(null)
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = ''
-                }
-            }
-      }    
-      setIsSaving(true);
-      console.log('Starting article save with state:', {
-        isEditMode,
-        featuredImageUrl,
-        imagePath,
-        selectedImage,
-        uploadedImageData
-      })
-
-
-      try {
-
-
-        // Determine if we should update the publish status
-        const published = publishStatus !== null ? publishStatus : isPublished
-
-        // Get currrent image state, preferring newly uploaded image if available
-        const currentImageUrl = uploadedImageData?.url || featuredImageUrl
-        const currentImagePath = uploadedImageData?.path || imagePath
-
-        // console.log("Current image state",)
-    
-
-        console.log('Current image state', {
-          featuredImageUrl: currentImageUrl,
-          imagePath: currentImagePath,
-          selectedImage,
-          uploadedImageData
-        })
-
-
-
-        const articleData = {
-
-          title,
-          content,
-          tags: selectedTags,
-          authorId: user.id,
-          published,
-          featuredImageUrl: currentImageUrl
-
-        } 
-
-        console.log("Saving article with data:", articleData);
-
-
-        let savedArticle;
-
-
-        // update 
-
-        if(isEditMode){
-          // update function 
-        }else{
-          // insert create new article 
-          savedArticle = await createArticle(articleData)
-          
-        }
-        console.log('Article saved successfully:',  savedArticle)
-        toast.success(`Article ${isEditMode ? 'updated' : 'created'} successfully`)
-
-      } catch (error) {
-        console.error("Error saving article", error)
-        toast.error("Failed to save your article. Please try againg later")
-      } finally{
-        setIsSaving(false)
       }
-  }
+    }
+    setIsSaving(true);
+    console.log("Starting article save with state:", {
+      isEditMode,
+      featuredImageUrl,
+      imagePath,
+      selectedImage,
+      uploadedImageData,
+    });
+
+    try {
+      // Determine if we should update the publish status
+      const published = publishStatus !== null ? publishStatus : isPublished;
+
+      // Get currrent image state, preferring newly uploaded image if available
+      const currentImageUrl = uploadedImageData?.url || featuredImageUrl;
+      const currentImagePath = uploadedImageData?.path || imagePath;
+
+      // console.log("Current image state",)
+
+      console.log("Current image state", {
+        featuredImageUrl: currentImageUrl,
+        imagePath: currentImagePath,
+        selectedImage,
+        uploadedImageData,
+      });
+
+      const articleData = {
+        title,
+        content,
+        tags: selectedTags,
+        authorId: user.id,
+        published,
+        featuredImageUrl: currentImageUrl,
+      };
+
+      console.log("Saving article with data:", articleData);
+
+      let savedArticle;
+
+      // update
+
+      if (isEditMode) {
+        // update function
+        savedArticle = await updateArticle(id ,articleData)
+      } else {
+        // insert create new article
+        savedArticle = await createArticle(articleData);
+      }
+      console.log("Article saved successfully:", savedArticle);
+      toast.success(
+        `Article ${isEditMode ? "updated" : "created"} successfully`
+      );
+    } catch (error) {
+      console.error("Error saving article", error);
+      toast.error("Failed to save your article. Please try againg later");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -361,8 +391,8 @@ const ArticleEditorPage = () => {
                   try {
                     await handleUploadImage();
                   } catch (error) {
-                    console.error('Failed to upload image:', error)
-                    toast.error('Failed to upload image. Please try again.')
+                    console.error("Failed to upload image:", error);
+                    toast.error("Failed to upload image. Please try again.");
                   }
                 }}
                 disabled={isUploading}
@@ -484,21 +514,20 @@ const ArticleEditorPage = () => {
         </div>
       </div>
 
-       <div className="px-6 py-4 md:px-10 flex justify-end space-x-4">
-                <button
-                    onClick={() => handleSave(false)}
+      <div className="px-6 py-4 md:px-10 flex justify-end space-x-4">
+        <button
+          onClick={() => handleSave(false)}
+          className="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {isEditMode ? "Update as Draft" : "Save as Draft"}
+        </button>
 
-                    className="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                    {isEditMode ? "Update as Draft" : "Save as Draft"}
-                </button>
-
-                <button
-                    onClick={() => handleSave(true)}
-                    className="px-6 py-3 border border-transparent rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                    {isEditMode ? "Update and Publish" : "Save and Publish"}
-                </button>
+        <button
+          onClick={() => handleSave(true)}
+          className="px-6 py-3 border border-transparent rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {isEditMode ? "Update and Publish" : "Save and Publish"}
+        </button>
       </div>
     </div>
   );

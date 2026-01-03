@@ -11,8 +11,7 @@ const SignInPage = () => {
   const [success, setSuccess] = useState(false);
 
   const authinfo = useAuth();
-  console.log("Auth context:", authinfo);
-
+  
   const navigate = useNavigate()
 
   const handlesubmit = async(event) =>{
