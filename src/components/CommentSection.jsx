@@ -143,9 +143,23 @@ const CommentSection = ({ articleId }) => {
                 return current;
               }
             });
+          }else{
+            console.log('UNFILTERED: No ID in payload:', payload);
           }
         }
       )
+
+      .on("postgres_changes",{
+        event: "UPDATE",
+        schema: "public",
+        table: "comments",
+        filter: `article_id=eq.${articleId}`
+      },
+    
+     payload => {
+      console.log("update event recevied: ",payload)
+      fetchComments()
+    })
 
       .subscribe((status) => {
         console.log("subsciption status", status);
@@ -220,7 +234,6 @@ const CommentSection = ({ articleId }) => {
         data,
       });
       console.log("========= COMMENT DELETION COMPLETE =========");
-      toast.success("========= COMMENT DELETION COMPLETE =========");
     } catch (error) {
       console.error("Error deleting comment:", error);
       toast.error("Failed to delete comment");
@@ -234,22 +247,24 @@ const CommentSection = ({ articleId }) => {
   };
 
   const handleUpdate = async () => {
-    if (!((editText || "").trim())) return;
+       if (!editText.trim()) return
 
-    try {
-      const commentId = editingId;
-      const content = (editText || "").trim();
-      // clear edit text and exit editing mode
-      setEditText("");
-      setEditingId(null);
+   try {
 
-      await supabase.from("comments").update({ content }).eq("id", commentId);
+            // Exit edit mode immediately
+            const commentId = editingId;
+            const content = editText.trim();
+            setEditingId(null);
 
-      // let real time handle the update
-    } catch (error) {
-      console.error('Error updating comment:', error);
-      toast.error('Failed to update comment');
-    }
+            await supabase.from('comments')
+                .update({ content })
+                .eq('id', commentId)
+
+            // let real time handle the update
+        } catch (error) {
+            console.error('Error updating comment:', error);
+            toast.error('Failed to update comment');
+        }
   };
 
   return (
