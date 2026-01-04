@@ -150,10 +150,10 @@ const ArticlePage = () => {
           </div>
 
           {/* article content */}
-          <div className="px-6 md:px-12 pb-10">
+          <div className="px-6 md:px-12 pb-10 ">
 
             <div
-              className="prose prose-lg prose-blue max-w-none"
+              className="prose prose-lg prose-blue max-w-none overflow-hidden"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
 
